@@ -70,8 +70,10 @@ class PostTransactionTask(Task):
             _get_task_queue().append((cls, args, kwargs))
         else:
             apply_async_orig = cls.original_apply_async
-            if current_app.conf.CELERY_ALWAYS_EAGER:
-                apply_async_orig =  transaction.autocommit()(apply_async_orig)
+            # TODO: sometime fails when transaction.is_managed() == True, added transaction.autocommit() in these cases
+            # I don't known reason but with this hack it seems works
+            if current_app.conf.CELERY_ALWAYS_EAGER or transaction.is_managed():
+                apply_async_orig = transaction.autocommit()(apply_async_orig)
             return apply_async_orig(*args, **kwargs)
 
 
