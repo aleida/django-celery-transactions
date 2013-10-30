@@ -118,5 +118,7 @@ functions = (
 
 for function in functions:
     name = function.__name__
-    function = partial(function, getattr(transaction, name))
+    original = getattr(transaction, name)
+    function = partial(function, original)
+    function.original = original
     setattr(transaction, name, function)

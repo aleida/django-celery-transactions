@@ -100,7 +100,7 @@ def _send_tasks(**kwargs):
     # TODO: sometime fails when transaction.is_managed() == True, added transaction.autocommit() in these cases
     # I don't known reason but with this hack it seems works
     if not current_app.conf.CELERY_ALWAYS_EAGER and transaction.is_managed():
-        transaction.commit()
+        transaction.original.commit()
 
 
 # A replacement decorator.
