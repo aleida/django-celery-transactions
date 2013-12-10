@@ -52,6 +52,12 @@ class PostTransactionTask(Task):
         # aren't being managed (i.e. the signal handlers won't send the task).
 
         # A rather roundabout way of allowing control of transaction behaviour from source. I'm sure there's a better way.
+
+        # For tests use original Task.apply_async_orig
+        if current_app.conf.CELERY_ALWAYS_EAGER:
+            apply_async_orig = cls.original_apply_async
+            return apply_async_orig(*args, **kwargs)
+
         after_transaction = True
         if len(args) > 1:
             if isinstance(args[1], dict):
@@ -68,12 +74,6 @@ class PostTransactionTask(Task):
                 else:
                     transaction.set_dirty()
             _get_task_queue().append((cls, args, kwargs))
-        else:
-            apply_async_orig = cls.original_apply_async
-
-            if current_app.conf.CELERY_ALWAYS_EAGER:
-                apply_async_orig = transaction.autocommit()(apply_async_orig)
-            return apply_async_orig(*args, **kwargs)
 
 
 def _discard_tasks(**kwargs):
